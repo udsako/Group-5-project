@@ -49,4 +49,22 @@ router.post('/', bookingValidation, validate, (req: Request, res: Response) => {
   res.status(201).json(newBooking);
 });
 
+// DELETE cancel a booking
+router.delete('/:id', (req: Request, res: Response) => {
+  const index = bookings.findIndex(b => b.id === req.params.id);
+  if (index === -1) {
+    res.status(404).json({ message: 'Booking not found' });
+    return;
+  }
+
+  const booking = bookings[index];
+  const event = events.find(e => e.id === booking.eventId);
+  if (event) {
+    event.availableSeats += booking.seats;
+  }
+
+  bookings.splice(index, 1);
+  res.json({ message: 'Booking cancelled successfully' });
+});
+
 export default router;
