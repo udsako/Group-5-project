@@ -1,8 +1,18 @@
 import { Router, Request, Response } from 'express';
+import { body } from 'express-validator';
 import { bookings, Booking } from '../models/booking';
 import { events } from '../models/event';
+import validate from '../middleware/validate';
 
 const router = Router();
+
+// Validation rules
+const bookingValidation = [
+  body('eventId').notEmpty().withMessage('Event ID is required'),
+  body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('seats').isInt({ min: 1 }).withMessage('Seats must be at least 1'),
+];
 
 // GET all bookings
 router.get('/', (req: Request, res: Response) => {
@@ -10,23 +20,20 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 // POST create a new booking
-router.post('/', (req: Request, res: Response) => {
+router.post('/', bookingValidation, validate, (req: Request, res: Response) => {
   const { eventId, name, email, seats } = req.body;
 
-  // Find the event
   const event = events.find(e => e.id === eventId);
   if (!event) {
     res.status(404).json({ message: 'Event not found' });
     return;
   }
 
-  // Check available seats
   if (event.availableSeats < seats) {
     res.status(400).json({ message: 'Not enough available seats' });
     return;
   }
 
-  // Create booking
   const newBooking: Booking = {
     id: String(bookings.length + 1),
     eventId,
@@ -36,7 +43,6 @@ router.post('/', (req: Request, res: Response) => {
     createdAt: new Date().toISOString()
   };
 
-  // Update available seats
   event.availableSeats -= seats;
   bookings.push(newBooking);
 
