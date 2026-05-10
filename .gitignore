@@ -87,3 +87,6 @@ desktop.ini
 coverage/
 .nyc_output/
 >>>>>>> 5d7c1aab115702b7286c083a7ec46c8b4112d61b
+
+frontend/.next
+frontend/node_modules
